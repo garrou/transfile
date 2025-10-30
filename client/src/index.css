@@ -19,19 +19,6 @@
   margin-bottom: 3rem;
 }
 
-.icon-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%);
-  border-radius: 24px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem;
-  transition: transform 0.3s ease;
-}
-
 .title {
   font-size: 3rem;
   font-weight: bold;
@@ -333,7 +320,6 @@
   font-size: 1.5rem;
   font-weight: bold;
   color: #1f2937;
-  margin-bottom: 1.5rem;
 }
 
 .step-list {
@@ -344,8 +330,8 @@
 
 .step-item {
   display: flex;
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .step-badge {
@@ -439,4 +425,84 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.toggle-container {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.toggle-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: #cbd5e0;
+  border-radius: 34px;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.toggle-checkbox:checked+.toggle-slider {
+  background: #6366f1;
+}
+
+.toggle-checkbox:checked+.toggle-slider::before {
+  transform: translateX(22px);
+}
+
+.toggle-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.toggle-description {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-left: 3.5rem;
+}
+
+.btn-reset {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    margin-top: 1rem;
+}
+
+.btn-reset:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}
+
+.btn-reset:active:not(:disabled) {
+    transform: scale(0.98);
 }
