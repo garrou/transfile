@@ -532,10 +532,4 @@
 
 .slider {
   width: 100%;
-  appearance: none;
-  height: 6px;
-  border-radius: 4px;
-  background: linear-gradient(to right, #6366f1, #9333ea);
-  outline: none;
-  transition: background 0.3s ease;
 }

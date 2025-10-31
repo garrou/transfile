@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, Lock, Key, Copy, Check, FileCheck, Sparkles, RotateCcw, Clock } from 'lucide-react';
+import { Upload, Lock, Key, Copy, Check, FileCheck, Sparkles, RotateCcw } from 'lucide-react';
 import { useFileEncryption } from '../hooks/useFileEncryption';
 
 const SendFile = () => {
@@ -70,10 +70,17 @@ const SendFile = () => {
                                 Delete file after recipient downloads it
                             </span>
                         </label>
-                        <p className="toggle-description">
-                            {deleteAfterDownload
-                                ? '🔒 File will be automatically deleted after first download (recommended)'
-                                : `⚠️ File will remain available for ${expirationHours} hour${expirationHours > 1 ? 's': ''}`}
+                        <div className="toggle-description">
+                            {deleteAfterDownload ? (
+                                <p>🔒 File will be automatically deleted after first download (recommended)</p>
+                            ) : (
+                                <p>
+                                    ⚠️ File will remain available for{" "}
+                                    <span class="toggle-text">
+                                        {expirationHours} hour{expirationHours > 1 ? "s" : ""}
+                                    </span>
+                                </p>
+                            )}
 
                             {!deleteAfterDownload && <div className="slider-container">
                                 <input
@@ -86,7 +93,7 @@ const SendFile = () => {
                                     className="slider"
                                 />
                             </div>}
-                        </p>
+                        </div>
                     </div>
 
                     <button

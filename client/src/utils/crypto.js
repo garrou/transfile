@@ -35,11 +35,9 @@ export const encryptFileData = async (file, passphrase) => {
 
 export const decryptFileData = async (base64Data, passphrase) => {
     const combined = base64ToArrayBuffer(base64Data);
-
     const salt = combined.slice(0, 16);
     const iv = combined.slice(16, 28);
     const encryptedContent = combined.slice(28);
-
     const key = await deriveKey(passphrase, salt);
 
     const decryptedContent = await crypto.subtle.decrypt(
@@ -47,7 +45,6 @@ export const decryptFileData = async (base64Data, passphrase) => {
         key,
         encryptedContent
     );
-
     return decryptedContent;
 };
 
