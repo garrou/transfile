@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, Trash } from "lucide-react";
 import SendFile from "./components/SendFile";
 import ReceiveFile from "./components/ReceiveFile";
+import DeleteFile from "./components/DeleteFile";
 import Info from "./components/Info";
 
 const App = () => {
@@ -32,9 +33,16 @@ const App = () => {
                         <Download size={20} />
                         Receive
                     </button>
+                    <button
+                        onClick={() => setMode("delete")}
+                        className={`mode-btn ${mode === "delete" ? "active" : ""}`}
+                    >
+                        <Trash size={20} />
+                        Delete
+                    </button>
                 </div>
 
-                {mode === "send" ? <SendFile /> : <ReceiveFile />}
+                {mode === "send" ? <SendFile /> : mode === "receive" ? <ReceiveFile /> : <DeleteFile />}
 
                 <Info />
             </div>

@@ -24,10 +24,8 @@ export const useFileDecryption = () => {
             };
 
             setDecryptedFile(fileData);
-            return { success: true, file: fileData };
         } catch (err) {
             setError(err.message);
-            return { success: false, error: err.message };
         } finally {
             setIsProcessing(false);
         }

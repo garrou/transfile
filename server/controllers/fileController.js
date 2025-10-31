@@ -22,4 +22,13 @@ export default class FileController {
             next(e);
         }
     }
+
+    deleteFile = async (req, res, next) => {
+        try {
+            await this._fileService.deleteFile(req.params.id);
+            res.sendStatus(200);
+        } catch (e) {
+            next(e);
+        }
+    }
 }

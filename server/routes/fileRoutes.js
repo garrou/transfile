@@ -8,4 +8,6 @@ router.post("/", fileController.uploadFile);
 
 router.get("/:id", fileController.fetchFile);
 
+router.delete("/:id", fileController.deleteFile);
+
 export default router;

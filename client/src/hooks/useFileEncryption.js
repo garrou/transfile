@@ -28,10 +28,8 @@ export const useFileEncryption = () => {
             await uploadFile(fileId, encryptedData, metadata);
 
             setGeneratedPassphrase(phrase);
-            return { success: true, passphrase: phrase };
         } catch (err) {
             setError(err.message);
-            return { success: false, error: err.message };
         } finally {
             setIsProcessing(false);
         }

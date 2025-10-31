@@ -57,7 +57,7 @@ export const generateFileId = async (passphrase) => {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return 'file_' + hashHex.substring(0, 32);
+    return hashHex.substring(0, 32);
 };
 
 const arrayBufferToBase64 = (buffer) => {
