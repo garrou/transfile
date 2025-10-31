@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { generatePassphrase, generateFileId, encryptFileData } from "../utils/crypto";
 import { uploadFile } from "../services/api";
+import { checkNumber } from "../utils/format";
 
 export const useFileEncryption = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState(null);
     const [generatedPassphrase, setGeneratedPassphrase] = useState("");
 
-    const encryptAndUpload = async (file, deleteAfterDownload) => {
+    const encryptAndUpload = async (file, deleteAfterDownload, expirationHours) => {
         setIsProcessing(true);
         setError(null);
 
@@ -15,13 +16,14 @@ export const useFileEncryption = () => {
             const phrase = generatePassphrase();
             const fileId = await generateFileId(phrase);
             const encryptedData = await encryptFileData(file, phrase);
+            const expiresHour = checkNumber(expirationHours, 1, 24);
 
             const metadata = {
                 filename: file.name,
                 type: file.type,
                 size: file.size,
                 uploadedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                expiresAt: new Date(Date.now() + expirationHours * 60 * 60 * 1000).toISOString(),
                 deleteAfterDownload,
             };
 

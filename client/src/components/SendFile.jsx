@@ -1,22 +1,24 @@
 import { useState } from 'react';
-import { Upload, Lock, Key, Copy, Check, FileCheck, Sparkles, RotateCcw } from 'lucide-react';
+import { Upload, Lock, Key, Copy, Check, FileCheck, Sparkles, RotateCcw, Clock } from 'lucide-react';
 import { useFileEncryption } from '../hooks/useFileEncryption';
 
 const SendFile = () => {
     const [file, setFile] = useState(null);
     const [copied, setCopied] = useState(false);
     const [deleteAfterDownload, setDeleteAfterDownload] = useState(true);
+    const [expirationHours, setExpirationHours] = useState(24);
     const { encryptAndUpload, isProcessing, error, generatedPassphrase, reset } = useFileEncryption();
 
     const handleEncrypt = async () => {
         if (!file) return;
-        await encryptAndUpload(file, deleteAfterDownload);
+        await encryptAndUpload(file, deleteAfterDownload, expirationHours);
     };
 
     const handleReset = () => {
         setFile(null);
         setCopied(false);
         setDeleteAfterDownload(true);
+        setExpirationHours(24);
         reset();
     };
 
@@ -71,7 +73,19 @@ const SendFile = () => {
                         <p className="toggle-description">
                             {deleteAfterDownload
                                 ? '🔒 File will be automatically deleted after first download (recommended)'
-                                : '⚠️ File will remain available for 24 hours'}
+                                : `⚠️ File will remain available for ${expirationHours} hour${expirationHours > 1 ? 's': ''}`}
+
+                            {!deleteAfterDownload && <div className="slider-container">
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="24"
+                                    step="1"
+                                    value={expirationHours}
+                                    onChange={(e) => setExpirationHours(Number(e.target.value))}
+                                    className="slider"
+                                />
+                            </div>}
                         </p>
                     </div>
 
