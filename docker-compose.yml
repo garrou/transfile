@@ -1,0 +1,18 @@
+services:
+  server:
+    build: server
+    container_name: server
+    restart: always
+    ports:
+      - "3000:3000"
+
+  client:
+    build: client
+    container_name: client
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - server

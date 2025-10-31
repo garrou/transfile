@@ -21,6 +21,7 @@ export const useFileEncryption = () => {
                 type: file.type,
                 size: file.size,
                 uploadedAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
                 deleteAfterDownload,
             };
 

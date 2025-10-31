@@ -71,7 +71,7 @@ const SendFile = () => {
                         <p className="toggle-description">
                             {deleteAfterDownload
                                 ? '🔒 File will be automatically deleted after first download (recommended)'
-                                : '⚠️ File will remain available for 24 hours or until manually deleted'}
+                                : '⚠️ File will remain available for 24 hours'}
                         </p>
                     </div>
 
