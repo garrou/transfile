@@ -2,6 +2,7 @@ import { useState } from "react";
 import { generatePassphrase, generateFileId, encryptFileData } from "../utils/crypto";
 import { uploadFile } from "../services/api";
 import { checkNumber } from "../utils/format";
+import { TYPE_FILE } from "../utils/constants";
 
 export const useFileEncryption = () => {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -19,11 +20,12 @@ export const useFileEncryption = () => {
             const expiresHour = checkNumber(expirationHours, 1, 24);
 
             const metadata = {
+                kind: TYPE_FILE,
                 filename: file.name,
                 type: file.type,
                 size: file.size,
                 uploadedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + expirationHours * 60 * 60 * 1000).toISOString(),
+                expiresAt: new Date(Date.now() + expiresHour * 60 * 60 * 1000).toISOString(),
                 deleteAfterDownload,
             };
 

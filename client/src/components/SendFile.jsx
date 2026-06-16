@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Upload, Lock, Key, Copy, Check, FileCheck, Sparkles, RotateCcw } from 'lucide-react';
 import { useFileEncryption } from '../hooks/useFileEncryption';
+import { TYPE_FILE, TYPE_TEXT } from '../utils/constants';
 
 const SendFile = () => {
     const [file, setFile] = useState(null);
@@ -34,7 +35,7 @@ const SendFile = () => {
                 <div className="card-icon-badge send">
                     <Upload size={24} color="#6366f1" />
                 </div>
-                <h2 className="card-title">Encrypt & Send</h2>
+                <h2 className="card-title">Encrypt & Send File</h2>
             </div>
 
             {!generatedPassphrase ?
@@ -42,7 +43,7 @@ const SendFile = () => {
                     <div className="form-group">
                         <label className="label">Choose your file</label>
                         <input
-                            type="file"
+                            type={TYPE_FILE}
                             onChange={(e) => setFile(e.target.files[0])}
                             className="file-input"
                         />
@@ -120,13 +121,9 @@ const SendFile = () => {
                             <h3 className="success-title">File Encrypted Successfully!</h3>
                         </div>
 
-                        <label className="label">
-                            <Key size={20} color="#6366f1" style={{ display: 'inline', marginRight: '0.5rem' }} />
-                            Your Secure Passphrase
-                        </label>
                         <div className="input-group">
                             <input
-                                type="text"
+                                type={TYPE_TEXT}
                                 value={generatedPassphrase}
                                 readOnly
                                 className="passphrase-input"

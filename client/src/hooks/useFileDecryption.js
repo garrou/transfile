@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { generateFileId, decryptFileData } from '../utils/crypto';
+import { generateFileId, decryptFileData, decryptTextData } from '../utils/crypto';
 import { downloadFile } from '../services/api';
+import { TYPE_FILE, TYPE_TEXT } from '../utils/constants';
 
 export const useFileDecryption = () => {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -14,16 +15,26 @@ export const useFileDecryption = () => {
         try {
             const fileId = await generateFileId(passphrase.trim());
             const storedData = await downloadFile(fileId);
-            const decryptedContent = await decryptFileData(storedData.data, passphrase.trim());
-            const blob = new Blob([decryptedContent], { type: storedData.type });
 
-            const fileData = {
-                blob,
-                filename: storedData.filename,
-                uploadedAt: storedData.uploadedAt
-            };
+            if (storedData.kind === TYPE_TEXT) {
+                const text = await decryptTextData(storedData.data, passphrase.trim());
 
-            setDecryptedFile(fileData);
+                setDecryptedFile({
+                    kind: TYPE_TEXT,
+                    text,
+                    uploadedAt: storedData.uploadedAt,
+                });
+            } else {
+                const decryptedContent = await decryptFileData(storedData.data, passphrase.trim());
+                const blob = new Blob([decryptedContent], { type: storedData.type });
+
+                setDecryptedFile({
+                    kind: TYPE_FILE,
+                    blob,
+                    filename: storedData.filename,
+                    uploadedAt: storedData.uploadedAt,
+                });
+            }
         } catch (err) {
             setError(err.message);
         } finally {

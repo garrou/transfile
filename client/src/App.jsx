@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Upload, Download, Trash } from "lucide-react";
-import SendFile from "./components/SendFile";
+import SendPanel from "./components/SendPanel";
 import ReceiveFile from "./components/ReceiveFile";
 import DeleteFile from "./components/DeleteFile";
 import Info from "./components/Info";
@@ -14,7 +14,7 @@ const App = () => {
                 <div className="header">
                     <h1 className="title">Transfile</h1>
                     <p className="subtitle">
-                        Military-grade encryption for sharing files safely. One passphrase is all you need.
+                        Military-grade encryption for sharing files and messages safely. One passphrase is all you need.
                     </p>
                 </div>
 
@@ -42,7 +42,7 @@ const App = () => {
                     </button>
                 </div>
 
-                {mode === "send" ? <SendFile /> : mode === "receive" ? <ReceiveFile /> : <DeleteFile />}
+                {mode === "send" ? <SendPanel /> : mode === "receive" ? <ReceiveFile /> : <DeleteFile />}
 
                 <Info />
             </div>

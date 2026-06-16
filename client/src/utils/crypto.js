@@ -14,7 +14,33 @@ export const generatePassphrase = (length = 12) => {
 
 export const encryptFileData = async (file, passphrase) => {
     const arrayBuffer = await file.arrayBuffer();
-    
+    return encryptBuffer(arrayBuffer, passphrase);
+};
+
+export const decryptFileData = async (base64Data, passphrase) => {
+    return decryptBuffer(base64Data, passphrase);
+};
+
+export const encryptTextData = async (text, passphrase) => {
+    const arrayBuffer = new TextEncoder().encode(text).buffer;
+    return encryptBuffer(arrayBuffer, passphrase);
+};
+
+export const decryptTextData = async (base64Data, passphrase) => {
+    const decryptedContent = await decryptBuffer(base64Data, passphrase);
+    return new TextDecoder().decode(decryptedContent);
+};
+
+export const generateFileId = async (passphrase) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(passphrase);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex.substring(0, 32);
+};
+
+const encryptBuffer = async (arrayBuffer, passphrase) => {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const key = await deriveKey(passphrase, salt);
@@ -33,28 +59,18 @@ export const encryptFileData = async (file, passphrase) => {
     return arrayBufferToBase64(combined.buffer);
 };
 
-export const decryptFileData = async (base64Data, passphrase) => {
+const decryptBuffer = async (base64Data, passphrase) => {
     const combined = base64ToArrayBuffer(base64Data);
     const salt = combined.slice(0, 16);
     const iv = combined.slice(16, 28);
     const encryptedContent = combined.slice(28);
     const key = await deriveKey(passphrase, salt);
 
-    const decryptedContent = await crypto.subtle.decrypt(
+    return crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: iv },
         key,
         encryptedContent
     );
-    return decryptedContent;
-};
-
-export const generateFileId = async (passphrase) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(passphrase);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex.substring(0, 32);
 };
 
 const arrayBufferToBase64 = (buffer) => {

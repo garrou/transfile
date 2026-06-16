@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, RotateCcw, Trash } from 'lucide-react';
 import { useFileDeletion } from '../hooks/useFileDeletion';
+import { TYPE_TEXT } from '../utils/constants';
 
 const DeleteFile = () => {
     const [passphrase, setPassphrase] = useState("");
@@ -29,7 +30,7 @@ const DeleteFile = () => {
                 <div className="form-group">
                     <label className="label">Enter the passphrase</label>
                     <input
-                        type="text"
+                        type={TYPE_TEXT}
                         value={passphrase}
                         onChange={(e) => setPassphrase(e.target.value)}
                         onKeyDown={(e) => {
@@ -63,7 +64,7 @@ const DeleteFile = () => {
                 <div className="success-box">
                     <div className="success-header">
                         <Sparkles size={24} color="#059669" />
-                        <h3 className="success-title">File Deleted!</h3>
+                        <h3 className="success-title">File Deleted !</h3>
                     </div>
                 </div>
 

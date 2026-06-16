@@ -30,7 +30,7 @@ export default class FileService {
     }
 
     uploadFile = async (payload) => {
-        const { fileId, data, filename, type, size, uploadedAt, expiresAt, deleteAfterDownload } = payload;
+        const { fileId, data, filename, type, size, uploadedAt, expiresAt, deleteAfterDownload, kind } = payload;
 
         if (!fileId || !data) throw new ServiceError(400, "Missing fields");
 
@@ -41,7 +41,7 @@ export default class FileService {
         await fs.writeFile(dataPath, buffer);
 
         const metaPath = path.join(this._storageDir, `${fileId}.json`);
-        const metadata = { filename, type, size, uploadedAt, expiresAt, deleteAfterDownload };
+        const metadata = { filename, type, size, uploadedAt, expiresAt, deleteAfterDownload, kind };
         await fs.writeFile(metaPath, JSON.stringify(metadata), "utf8");
     }
 

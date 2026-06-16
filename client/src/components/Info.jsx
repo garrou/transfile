@@ -6,13 +6,13 @@ const Info = () => {
                 <li className="step-item">
                     <div className="step-badge step-1">1</div>
                     <p className="step-text">
-                        <strong>Encrypt :</strong> Select a file and click encrypt. A random passphrase is automatically generated.
+                        <strong>Encrypt :</strong> Select a file or write a message, then click encrypt. A random passphrase is automatically generated.
                     </p>
                 </li>
                 <li className="step-item">
                     <div className="step-badge step-2">2</div>
                     <p className="step-text">
-                        <strong>Secure :</strong> File is encrypted with AES-256-GCM. The passphrase becomes a unique file identifier via SHA-256 hash.
+                        <strong>Secure :</strong> Your file or message is encrypted with AES-256-GCM. The passphrase becomes a unique identifier via SHA-256 hash.
                     </p>
                 </li>
                 <li className="step-item">
@@ -24,7 +24,7 @@ const Info = () => {
                 <li className="step-item">
                     <div className="step-badge step-4">4</div>
                     <p className="step-text">
-                        <strong>Decrypt :</strong> Recipient enters the passphrase to automatically retrieve the file and decrypt it locally.
+                        <strong>Decrypt :</strong> Recipient enters the passphrase to automatically retrieve and decrypt the file or message locally.
                     </p>
                 </li>
             </ul>

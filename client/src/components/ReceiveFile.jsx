@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Download, Unlock, Sparkles, RotateCcw } from 'lucide-react';
+import { Download, Unlock, Sparkles, RotateCcw, Copy, Check } from 'lucide-react';
 import { useFileDecryption } from '../hooks/useFileDecryption';
+import { TYPE_FILE, TYPE_TEXT } from '../utils/constants';
 
 const ReceiveFile = () => {
     const [passphrase, setPassphrase] = useState("");
+    const [copied, setCopied] = useState(false);
     const { downloadAndDecrypt, isProcessing, error, decryptedFile, reset } = useFileDecryption();
 
     const handleDecrypt = async () => {
@@ -13,11 +15,12 @@ const ReceiveFile = () => {
 
     const handleReset = () => {
         setPassphrase("");
+        setCopied(false);
         reset();
     };
 
     const downloadFile = () => {
-        if (!decryptedFile) return;
+        if (!decryptedFile || decryptedFile.kind !== TYPE_FILE) return;
 
         const url = URL.createObjectURL(decryptedFile.blob);
         const a = document.createElement('a');
@@ -27,6 +30,14 @@ const ReceiveFile = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    const copyText = () => {
+        if (!decryptedFile || decryptedFile.kind !== TYPE_TEXT) return;
+
+        navigator.clipboard.writeText(decryptedFile.text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     return (
@@ -42,7 +53,7 @@ const ReceiveFile = () => {
                 <div className="form-group">
                     <label className="label">Enter the passphrase</label>
                     <input
-                        type="text"
+                        type={TYPE_TEXT}
                         value={passphrase}
                         onChange={(e) => setPassphrase(e.target.value)}
                         onKeyDown={(e) => {
@@ -68,7 +79,7 @@ const ReceiveFile = () => {
                     ) : (
                         <>
                             <Unlock size={24} />
-                            Receive & Decrypt File
+                            Receive & Decrypt
                         </>
                     )}
                 </button>
@@ -76,20 +87,50 @@ const ReceiveFile = () => {
                 <div className="success-box">
                     <div className="success-header">
                         <Sparkles size={24} color="#059669" />
-                        <h3 className="success-title">File Decrypted Successfully!</h3>
+                        <h3 className="success-title">
+                            {decryptedFile.kind === TYPE_TEXT ? "Message Decrypted Successfully!" : "File Decrypted Successfully!"}
+                        </h3>
                     </div>
-                    <div className="decrypted-info">
-                        <p>
-                            <strong>Filename:</strong> {decryptedFile.filename}
-                        </p>
-                        <p className="timestamp">
-                            Uploaded: {new Date(decryptedFile.uploadedAt).toLocaleString()}
-                        </p>
-                    </div>
-                    <button onClick={downloadFile} className="btn success">
-                        <Download size={20} />
-                        Download File
-                    </button>
+
+                    {decryptedFile.kind === TYPE_TEXT ? <>
+                        <textarea
+                            readOnly
+                            value={decryptedFile.text}
+                            className="textarea decrypted-textarea"
+                            rows={6}
+                        />
+                        <div className="decrypted-info">
+                            <p className="timestamp">
+                                Uploaded: {new Date(decryptedFile.uploadedAt).toLocaleString()}
+                            </p>
+                        </div>
+                        <button onClick={copyText} className="btn success">
+                            {copied ? (
+                                <>
+                                    <Check size={20} />
+                                    Copied!
+                                </>
+                            ) : (
+                                <>
+                                    <Copy size={20} />
+                                    Copy Message
+                                </>
+                            )}
+                        </button>
+                    </> : <>
+                        <div className="decrypted-info">
+                            <p>
+                                <strong>Filename:</strong> {decryptedFile.filename}
+                            </p>
+                            <p className="timestamp">
+                                Uploaded: {new Date(decryptedFile.uploadedAt).toLocaleString()}
+                            </p>
+                        </div>
+                        <button onClick={downloadFile} className="btn success">
+                            <Download size={20} />
+                            Download File
+                        </button>
+                    </>}
                 </div>
 
                 <button
@@ -97,7 +138,7 @@ const ReceiveFile = () => {
                     className="btn btn-reset"
                 >
                     <RotateCcw size={20} />
-                    Receive Another File
+                    Receive Another Item
                 </button>
             </>
             }
