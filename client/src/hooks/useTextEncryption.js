@@ -22,9 +22,7 @@ export const useTextEncryption = () => {
             const metadata = {
                 kind: TYPE_TEXT,
                 type: "text/plain",
-                size: new TextEncoder().encode(text).length,
-                uploadedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + expiresHour * 60 * 60 * 1000).toISOString(),
+                expirationHours: expiresHour,
                 deleteAfterDownload,
             };
 

@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
+import rateLimit from "express-rate-limit";
 import routes from "../routes/index.js";
 import dotenv from 'dotenv';
 import {errorHandler} from "../middlewares/error.js";
+import {MAX_UPLOAD_MB} from "./constants.js";
 
 class App {
     constructor() {
@@ -11,6 +13,7 @@ class App {
         this._app = express();
         this._port = process.env.PORT || 8080;
         this.#setupCors();
+        this.#setupRateLimit();
         this.#setupMiddleware();
         this.#setupRoutes();
         this.#setupErrorHandler();
@@ -21,14 +24,25 @@ class App {
     }
 
     #setupMiddleware() {
-        this._app.use(express.json({ limit: "500mb" }));
+        this._app.use(express.json({ limit: `${MAX_UPLOAD_MB}mb` }));
     }
 
     #setupCors() {
+        const origins = (process.env.ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean);
+
         this._app.use(cors({
-            origins: [process.env.ORIGIN],
+            origin: origins,
             allowedHeaders: ["Authorization", "Content-Type"],
             exposedHeaders: ["Content-Disposition", "Content-Length", "Content-Type"]
+        }));
+    }
+
+    #setupRateLimit() {
+        this._app.use(rateLimit({
+            windowMs: 15 * 60 * 1000,
+            max: 100,
+            standardHeaders: true,
+            legacyHeaders: false,
         }));
     }
 
