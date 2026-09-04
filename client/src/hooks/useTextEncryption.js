@@ -16,15 +16,14 @@ export const useTextEncryption = () => {
         try {
             const phrase = generatePassphrase();
             const fileId = await generateFileId(phrase);
-            const encryptedData = await encryptTextData(text, phrase);
+            const type = "text/plain";
+            const encryptedData = await encryptTextData(text, phrase, { filename: "", type, kind: TYPE_TEXT });
             const expiresHour = checkNumber(expirationHours, 1, 24);
 
             const metadata = {
                 kind: TYPE_TEXT,
-                type: "text/plain",
-                size: new TextEncoder().encode(text).length,
-                uploadedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + expiresHour * 60 * 60 * 1000).toISOString(),
+                type,
+                expirationHours: expiresHour,
                 deleteAfterDownload,
             };
 

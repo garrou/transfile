@@ -6,13 +6,18 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "17.2.3",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.7.0"
   },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "vitest run",
+    "clean": "node tasks/clean.js"
   },
   "devDependencies": {
-    "nodemon": "3.1.10"
+    "nodemon": "3.1.10",
+    "supertest": "^7.2.2",
+    "vitest": "^5.0.0"
   }
 }

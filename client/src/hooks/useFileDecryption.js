@@ -16,8 +16,10 @@ export const useFileDecryption = () => {
             const fileId = await generateFileId(passphrase.trim());
             const storedData = await downloadFile(fileId);
 
+            const aadMetadata = { filename: storedData.filename, type: storedData.type, kind: storedData.kind };
+
             if (storedData.kind === TYPE_TEXT) {
-                const text = await decryptTextData(storedData.data, passphrase.trim());
+                const text = await decryptTextData(storedData.data, passphrase.trim(), aadMetadata);
 
                 setDecryptedFile({
                     kind: TYPE_TEXT,
@@ -25,7 +27,7 @@ export const useFileDecryption = () => {
                     uploadedAt: storedData.uploadedAt,
                 });
             } else {
-                const decryptedContent = await decryptFileData(storedData.data, passphrase.trim());
+                const decryptedContent = await decryptFileData(storedData.data, passphrase.trim(), aadMetadata);
                 const blob = new Blob([decryptedContent], { type: storedData.type });
 
                 setDecryptedFile({
