@@ -4,7 +4,7 @@ import rateLimit from "express-rate-limit";
 import routes from "../routes/index.js";
 import dotenv from 'dotenv';
 import {errorHandler} from "../middlewares/error.js";
-import {MAX_UPLOAD_MB} from "./constants.js";
+import {MAX_UPLOAD_MB, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX} from "./constants.js";
 
 class App {
     constructor() {
@@ -39,8 +39,8 @@ class App {
 
     #setupRateLimit() {
         this._app.use(rateLimit({
-            windowMs: 15 * 60 * 1000,
-            max: 100,
+            windowMs: RATE_LIMIT_WINDOW_MS,
+            max: RATE_LIMIT_MAX,
             standardHeaders: true,
             legacyHeaders: false,
         }));

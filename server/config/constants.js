@@ -7,3 +7,6 @@ export const MAX_EXPIRATION_HOURS = 24;
 
 export const MAX_FILENAME_LENGTH = 255;
 export const MAX_TYPE_LENGTH = 255;
+
+export const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000;
+export const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX) || 100;

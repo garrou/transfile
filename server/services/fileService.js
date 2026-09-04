@@ -11,8 +11,8 @@ import {
 } from "../config/constants.js";
 
 export default class FileService {
-    constructor() {
-        this._storageDir = path.join(path.resolve(), "storage");
+    constructor(storageDir = path.join(path.resolve(), "storage")) {
+        this._storageDir = storageDir;
     }
 
     #ensureStorage = async () => {
