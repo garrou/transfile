@@ -26,6 +26,20 @@ describe("FileService", () => {
             await expect(service.uploadFile({ fileId: VALID_ID })).rejects.toMatchObject({ status: 400 });
         });
 
+        it.each([undefined, null, "a string", 123, ["array"]])(
+            "rejects a non-object payload: %p",
+            async (payload) => {
+                await expect(service.uploadFile(payload)).rejects.toMatchObject({ status: 400 });
+            }
+        );
+
+        it.each([{ a: 1 }, [1, 2, 3], 123, true, ""])(
+            "rejects data that is not a non-empty string: %p",
+            async (data) => {
+                await expect(service.uploadFile({ fileId: VALID_ID, data })).rejects.toMatchObject({ status: 400 });
+            }
+        );
+
         it.each([
             "../../../../etc/passwd",
             "../secret",
@@ -149,6 +163,35 @@ describe("FileService", () => {
             const entries = await fs.readdir(storageDir);
             expect(entries).toHaveLength(0);
             await expect(service.fetchFile(VALID_ID)).rejects.toMatchObject({ status: 404 });
+        });
+    });
+
+    describe("concurrent access races", () => {
+        it("deleteFile does not throw when a concurrent request already removed the files", async () => {
+            await service.uploadFile({ fileId: VALID_ID, data: DATA });
+
+            const enoent = Object.assign(new Error("ENOENT: no such file or directory"), { code: "ENOENT" });
+            vi.spyOn(fs, "unlink").mockRejectedValueOnce(enoent);
+
+            await expect(service.deleteFile(VALID_ID)).resolves.toBeUndefined();
+
+            vi.restoreAllMocks();
+        });
+
+        it("fetchFile returns 404 instead of leaking a raw fs error when a concurrent request wins the race", async () => {
+            await service.uploadFile({ fileId: VALID_ID, data: DATA });
+
+            const originalReadFile = fs.readFile.bind(fs);
+            vi.spyOn(fs, "readFile").mockImplementation(async (filePath, ...args) => {
+                if (String(filePath).endsWith(".bin")) {
+                    throw Object.assign(new Error(`ENOENT: no such file or directory, open '${filePath}'`), { code: "ENOENT" });
+                }
+                return originalReadFile(filePath, ...args);
+            });
+
+            await expect(service.fetchFile(VALID_ID)).rejects.toMatchObject({ status: 404 });
+
+            vi.restoreAllMocks();
         });
     });
 

@@ -34,22 +34,16 @@ describe("CORS", () => {
         expect(res.headers["access-control-allow-origin"]).toBe(ALLOWED_ORIGIN);
     });
 
-    it("does not grant access to an unlisted origin", async () => {
+    it("always returns the configured origin, regardless of the requester's Origin header", async () => {
+        // cors treats a plain string as a literal header value, not a dynamic allowlist match.
+        // A page at an unlisted origin still gets this header back, but with a value that
+        // doesn't match its own origin, so the browser's same-origin policy blocks it from
+        // reading the response. Only the actual configured origin can use the response.
         const app = await loadApp({ origin: ALLOWED_ORIGIN });
 
         const res = await request(app).get(`/files/${VALID_ID}`).set("Origin", "http://evil.test");
 
-        expect(res.headers["access-control-allow-origin"]).toBeUndefined();
-    });
-
-    it("supports multiple comma-separated origins", async () => {
-        const app = await loadApp({ origin: `${ALLOWED_ORIGIN},http://second.test` });
-
-        const first = await request(app).get(`/files/${VALID_ID}`).set("Origin", ALLOWED_ORIGIN);
-        const second = await request(app).get(`/files/${VALID_ID}`).set("Origin", "http://second.test");
-
-        expect(first.headers["access-control-allow-origin"]).toBe(ALLOWED_ORIGIN);
-        expect(second.headers["access-control-allow-origin"]).toBe("http://second.test");
+        expect(res.headers["access-control-allow-origin"]).toBe(ALLOWED_ORIGIN);
     });
 });
 

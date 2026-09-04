@@ -35,6 +35,14 @@ export default class FileService {
         return Math.min(Math.max(hours, MIN_EXPIRATION_HOURS), MAX_EXPIRATION_HOURS);
     }
 
+    #safeUnlink = async (filePath) => {
+        try {
+            await fs.unlink(filePath);
+        } catch (err) {
+            if (err.code !== "ENOENT") throw err;
+        }
+    }
+
     deleteFile = async (id) => {
         this.#validateId(id);
 
@@ -47,14 +55,20 @@ export default class FileService {
         } catch (_) {
             throw new ServiceError(404, "File not found");
         }
-        await fs.unlink(metaPath);
-        await fs.unlink(dataPath);
+        await this.#safeUnlink(metaPath);
+        await this.#safeUnlink(dataPath);
     }
 
     uploadFile = async (payload) => {
+        if (typeof payload !== "object" || payload === null) {
+            throw new ServiceError(400, "Invalid payload");
+        }
+
         const { fileId, data, filename, type, expirationHours, deleteAfterDownload, kind } = payload;
 
-        if (!fileId || !data) throw new ServiceError(400, "Missing fields");
+        if (!fileId || typeof data !== "string" || data.length === 0) {
+            throw new ServiceError(400, "Missing fields");
+        }
         this.#validateId(fileId);
 
         const buffer = Buffer.from(data, "base64");
@@ -89,27 +103,36 @@ export default class FileService {
         const dataPath = path.join(this._storageDir, `${id}.bin`);
         const metaPath = path.join(this._storageDir, `${id}.json`);
 
+        let metadata;
+        let buffer;
         try {
             await fs.access(dataPath);
             await fs.access(metaPath);
-        } catch (_) {
-            throw new ServiceError(404, "File not found");
-        }
-        const metaContent = await fs.readFile(metaPath, "utf8");
-        const metadata = JSON.parse(metaContent);
 
-        if (new Date(metadata.expiresAt) < new Date()) {
-            await fs.unlink(metaPath).catch(() => {});
-            await fs.unlink(dataPath).catch(() => {});
-            throw new ServiceError(404, "File not found");
+            const metaContent = await fs.readFile(metaPath, "utf8");
+            metadata = JSON.parse(metaContent);
+
+            if (new Date(metadata.expiresAt) < new Date()) {
+                await this.#safeUnlink(metaPath);
+                await this.#safeUnlink(dataPath);
+                throw new ServiceError(404, "File not found");
+            }
+
+            buffer = await fs.readFile(dataPath);
+        } catch (err) {
+            // A concurrent request may have deleted the file between the checks
+            // above and here: treat that race the same as "not found" instead of
+            // leaking a raw fs error (and its absolute path) to the client.
+            if (err instanceof ServiceError) throw err;
+            if (err.code === "ENOENT") throw new ServiceError(404, "File not found");
+            throw err;
         }
 
-        const buffer = await fs.readFile(dataPath);
         const data = buffer.toString("base64");
 
         if (metadata.deleteAfterDownload) {
-            await fs.unlink(metaPath);
-            await fs.unlink(dataPath);
+            await this.#safeUnlink(metaPath);
+            await this.#safeUnlink(dataPath);
         }
         return { data, metadata };
     }

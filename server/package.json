@@ -12,7 +12,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "clean": "node tasks/clean.js"
   },
   "devDependencies": {
     "nodemon": "3.1.10",
