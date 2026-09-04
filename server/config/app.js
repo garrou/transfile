@@ -28,10 +28,8 @@ class App {
     }
 
     #setupCors() {
-        const origins = (process.env.ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean);
-
         this._app.use(cors({
-            origin: origins,
+            origin: process.env.ORIGIN,
             allowedHeaders: ["Authorization", "Content-Type"],
             exposedHeaders: ["Content-Disposition", "Content-Length", "Content-Type"]
         }));
