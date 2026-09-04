@@ -16,12 +16,13 @@ export const useTextEncryption = () => {
         try {
             const phrase = generatePassphrase();
             const fileId = await generateFileId(phrase);
-            const encryptedData = await encryptTextData(text, phrase);
+            const type = "text/plain";
+            const encryptedData = await encryptTextData(text, phrase, { filename: "", type, kind: TYPE_TEXT });
             const expiresHour = checkNumber(expirationHours, 1, 24);
 
             const metadata = {
                 kind: TYPE_TEXT,
-                type: "text/plain",
+                type,
                 expirationHours: expiresHour,
                 deleteAfterDownload,
             };

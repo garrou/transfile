@@ -12,22 +12,30 @@ export const generatePassphrase = (length = 12) => {
     return selected.join('-');
 };
 
-export const encryptFileData = async (file, passphrase) => {
+export const buildMetadataAad = ({ filename, type, kind }) => {
+    return new TextEncoder().encode(JSON.stringify({
+        filename: filename ?? "",
+        type: type ?? "",
+        kind: kind ?? "",
+    }));
+};
+
+export const encryptFileData = async (file, passphrase, aadMetadata) => {
     const arrayBuffer = await file.arrayBuffer();
-    return encryptBuffer(arrayBuffer, passphrase);
+    return encryptBuffer(arrayBuffer, passphrase, buildMetadataAad(aadMetadata));
 };
 
-export const decryptFileData = async (base64Data, passphrase) => {
-    return decryptBuffer(base64Data, passphrase);
+export const decryptFileData = async (base64Data, passphrase, aadMetadata) => {
+    return decryptBuffer(base64Data, passphrase, buildMetadataAad(aadMetadata));
 };
 
-export const encryptTextData = async (text, passphrase) => {
+export const encryptTextData = async (text, passphrase, aadMetadata) => {
     const arrayBuffer = new TextEncoder().encode(text).buffer;
-    return encryptBuffer(arrayBuffer, passphrase);
+    return encryptBuffer(arrayBuffer, passphrase, buildMetadataAad(aadMetadata));
 };
 
-export const decryptTextData = async (base64Data, passphrase) => {
-    const decryptedContent = await decryptBuffer(base64Data, passphrase);
+export const decryptTextData = async (base64Data, passphrase, aadMetadata) => {
+    const decryptedContent = await decryptBuffer(base64Data, passphrase, buildMetadataAad(aadMetadata));
     return new TextDecoder().decode(decryptedContent);
 };
 
@@ -40,13 +48,13 @@ export const generateFileId = async (passphrase) => {
     return hashHex.substring(0, 32);
 };
 
-const encryptBuffer = async (arrayBuffer, passphrase) => {
+const encryptBuffer = async (arrayBuffer, passphrase, aad) => {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const key = await deriveKey(passphrase, salt);
 
     const encryptedContent = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv: iv },
+        { name: 'AES-GCM', iv: iv, additionalData: aad },
         key,
         arrayBuffer
     );
@@ -59,7 +67,7 @@ const encryptBuffer = async (arrayBuffer, passphrase) => {
     return arrayBufferToBase64(combined.buffer);
 };
 
-const decryptBuffer = async (base64Data, passphrase) => {
+const decryptBuffer = async (base64Data, passphrase, aad) => {
     const combined = base64ToArrayBuffer(base64Data);
     const salt = combined.slice(0, 16);
     const iv = combined.slice(16, 28);
@@ -67,7 +75,7 @@ const decryptBuffer = async (base64Data, passphrase) => {
     const key = await deriveKey(passphrase, salt);
 
     return crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: iv },
+        { name: 'AES-GCM', iv: iv, additionalData: aad },
         key,
         encryptedContent
     );

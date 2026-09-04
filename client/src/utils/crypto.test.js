@@ -6,10 +6,13 @@ import {
     decryptFileData,
     encryptTextData,
     decryptTextData,
+    buildMetadataAad,
 } from "./crypto";
 import { words } from "./bip39";
 
 const asFile = (bytes) => ({ arrayBuffer: async () => bytes.buffer });
+const META = { filename: "report.pdf", type: "application/pdf", kind: "file" };
+const TEXT_META = { filename: "", type: "text/plain", kind: "text" };
 
 describe("generatePassphrase", () => {
     it("returns the requested number of dash-separated words from the wordlist", () => {
@@ -46,13 +49,29 @@ describe("generateFileId", () => {
     });
 });
 
+describe("buildMetadataAad", () => {
+    it("is deterministic for the same metadata", () => {
+        expect(buildMetadataAad(META)).toEqual(buildMetadataAad(META));
+    });
+
+    it("differs when any field differs", () => {
+        expect(buildMetadataAad(META)).not.toEqual(buildMetadataAad({ ...META, filename: "other.pdf" }));
+        expect(buildMetadataAad(META)).not.toEqual(buildMetadataAad({ ...META, type: "text/plain" }));
+        expect(buildMetadataAad(META)).not.toEqual(buildMetadataAad({ ...META, kind: "text" }));
+    });
+
+    it("defaults missing fields to an empty string", () => {
+        expect(buildMetadataAad({})).toEqual(buildMetadataAad({ filename: "", type: "", kind: "" }));
+    });
+});
+
 describe("text encryption roundtrip", () => {
-    it("decrypts to the original text with the correct passphrase", async () => {
+    it("decrypts to the original text with the correct passphrase and matching metadata", async () => {
         const text = "a secret message with émoji 🔒 and\nnewlines";
         const passphrase = "correct-passphrase";
 
-        const encrypted = await encryptTextData(text, passphrase);
-        const decrypted = await decryptTextData(encrypted, passphrase);
+        const encrypted = await encryptTextData(text, passphrase, TEXT_META);
+        const decrypted = await decryptTextData(encrypted, passphrase, TEXT_META);
 
         expect(decrypted).toBe(text);
     });
@@ -61,46 +80,66 @@ describe("text encryption roundtrip", () => {
         const text = "same message";
         const passphrase = "same-passphrase";
 
-        const first = await encryptTextData(text, passphrase);
-        const second = await encryptTextData(text, passphrase);
+        const first = await encryptTextData(text, passphrase, TEXT_META);
+        const second = await encryptTextData(text, passphrase, TEXT_META);
 
         expect(first).not.toBe(second);
     });
 
     it("fails to decrypt with the wrong passphrase", async () => {
-        const encrypted = await encryptTextData("secret", "right-passphrase");
+        const encrypted = await encryptTextData("secret", "right-passphrase", TEXT_META);
 
-        await expect(decryptTextData(encrypted, "wrong-passphrase")).rejects.toThrow();
+        await expect(decryptTextData(encrypted, "wrong-passphrase", TEXT_META)).rejects.toThrow();
+    });
+
+    it("fails to decrypt when the metadata used as AAD was tampered with after encryption", async () => {
+        const encrypted = await encryptTextData("secret", "a-passphrase", TEXT_META);
+
+        await expect(
+            decryptTextData(encrypted, "a-passphrase", { ...TEXT_META, type: "text/html" })
+        ).rejects.toThrow();
     });
 });
 
 describe("file encryption roundtrip", () => {
-    it("decrypts to the original bytes with the correct passphrase", async () => {
+    it("decrypts to the original bytes with the correct passphrase and matching metadata", async () => {
         const original = new Uint8Array([0, 1, 2, 3, 250, 251, 252, 253, 254, 255]);
         const passphrase = "file-passphrase";
 
-        const encrypted = await encryptFileData(asFile(original), passphrase);
-        const decrypted = await decryptFileData(encrypted, passphrase);
+        const encrypted = await encryptFileData(asFile(original), passphrase, META);
+        const decrypted = await decryptFileData(encrypted, passphrase, META);
 
         expect(new Uint8Array(decrypted)).toEqual(original);
     });
 
     it("fails to decrypt with the wrong passphrase", async () => {
         const original = new Uint8Array([1, 2, 3]);
-        const encrypted = await encryptFileData(asFile(original), "right-passphrase");
+        const encrypted = await encryptFileData(asFile(original), "right-passphrase", META);
 
-        await expect(decryptFileData(encrypted, "wrong-passphrase")).rejects.toThrow();
+        await expect(decryptFileData(encrypted, "wrong-passphrase", META)).rejects.toThrow();
     });
 
     it("fails to decrypt tampered ciphertext", async () => {
         const original = new Uint8Array([1, 2, 3, 4, 5]);
         const passphrase = "tamper-test";
-        const encrypted = await encryptFileData(asFile(original), passphrase);
+        const encrypted = await encryptFileData(asFile(original), passphrase, META);
 
         const bytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
         bytes[bytes.length - 1] ^= 0xff;
         const tampered = btoa(String.fromCharCode(...bytes));
 
-        await expect(decryptFileData(tampered, passphrase)).rejects.toThrow();
+        await expect(decryptFileData(tampered, passphrase, META)).rejects.toThrow();
+    });
+
+    it.each([
+        { ...META, filename: "malware.exe" },
+        { ...META, type: "application/x-msdownload" },
+        { ...META, kind: "text" },
+    ])("fails to decrypt when the stored metadata was tampered with (%o)", async (tamperedMeta) => {
+        const original = new Uint8Array([9, 9, 9]);
+        const passphrase = "server-tamper-test";
+        const encrypted = await encryptFileData(asFile(original), passphrase, META);
+
+        await expect(decryptFileData(encrypted, passphrase, tamperedMeta)).rejects.toThrow();
     });
 });
